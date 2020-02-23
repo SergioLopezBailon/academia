@@ -13,10 +13,14 @@ class AlumnoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $alumnos=Alumno::orderBy('apellidos')->paginate(4);
-        return view('alumnos.index', compact('alumnos'));
+        $miModulo=$request->get('modulo_id');
+        $modulos=Modulo::all();
+        $alumnos=Alumno::orderBy('apellidos')
+        ->modulo($miModulo)
+        ->paginate(4);
+        return view('alumnos.index', compact('alumnos','modulos','request'));
     }
 
     /**
@@ -130,7 +134,7 @@ class AlumnoController extends Controller
      */
     public function edit(Alumno $alumno)
     {
-        //
+        return view('alumnos.edit',compact('alumno'));   
     }
 
     /**
@@ -142,7 +146,34 @@ class AlumnoController extends Controller
      */
     public function update(Request $request, Alumno $alumno)
     {
-        //
+        $datos=$request->validated();
+
+
+        $alumno->nombre=$datos['nombre'];
+        $alumno->apellidos=ucwords($datos['apellidos']);
+        $alumno->mail=$datos['mail'];
+
+        if (isset($datos['foto'])){
+
+            $file=$datos['foto'];
+            $nombre='alumnos/'.time().'_'.$file->getClientOriginalName();
+
+            Storage::disk('public')->put($nombre, \File::get($file));
+
+            if(basename($datos['foto'])!='default.jpg'){
+                unlink($datos['foto']);
+            }
+
+            $alumno->update($datos);
+            $alumno->update(['foto'=>"img/$nombre"]);
+
+        }
+        else{
+            $alumno->update($datos);
+            
+
+        }
+        return redirect()->route('alumnos.index')->with("mensaje", "Alumno Modificado");
     }
 
     /**
@@ -153,6 +184,12 @@ class AlumnoController extends Controller
      */
     public function destroy(Alumno $alumno)
     {
-        //
+        if(basename($alumno->logo)!='default.jpg'){
+            unlink($alumno->logo);
+        }
+
+        $alumno->delete();
+        return redirect()->route('alumnos.index')->with('mensaje','Alumno borrado');
+
     }
 }

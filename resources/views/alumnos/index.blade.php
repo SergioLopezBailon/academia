@@ -10,6 +10,26 @@ Gestion de Alumnos
 <p class="alert alert-danger my-3">{{$text}}</p>
 @endif
 <a href="{{route('alumnos.create')}}" class="btn btn-info mb-3"><i class="fa fa-plus"></i> Crear alumno</a>
+<div class="float-right">
+  <form name="search" method="get" action="{{route('alumnos.index')}}"
+  class="form-inline float-right">
+
+  <select name="modulo_id" class="form-control" onchange="this.form.submit()">
+   <option value="%">Todos</option>
+  @foreach ($modulos as $modulo)
+    @if ($modulo->id==$request->modulo_id)
+      <option value="{{$modulo->id}}" selected>{{$modulo->nombre}}</option>
+ 
+    @else
+ 
+    <option value="{{$modulo->id}}">{{$modulo->nombre}}</option>
+    @endif
+  @endforeach
+ 
+ </select>
+ <input type="submit" class="btn btn-info ml-2" value="Buscar">
+ </form>
+</div>
 <table class="table table-striped table-dark">
     <thead>
       <tr>
@@ -43,6 +63,6 @@ Gestion de Alumnos
       @endforeach
     </tbody>
   </table>
-  {{$alumnos->links()}}
+  {{$alumnos->appends(Request::except('page'))->links()}}
   
 @endsection

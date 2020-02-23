@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Modulo;
 use Illuminate\Http\Request;
-
+use App\Alumno;
 class ModuloController extends Controller
 {
     /**
@@ -12,9 +12,13 @@ class ModuloController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $alumnos=Alumno::all();
+        $modulos = Modulo::orderBy('nombre')
+        ->alumno($request->get('alumno_id'))
+        ->paginate(3);
+        return view('modulos.index',compact('modulos','request','alumnos'));
     }
 
     /**
@@ -24,7 +28,7 @@ class ModuloController extends Controller
      */
     public function create()
     {
-        //
+        return view('modulos.create');
     }
 
     /**
@@ -35,7 +39,17 @@ class ModuloController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+           'nombre' => ['required','unique:modulos'],
+           'horas' => ['required','min:0']
+        ]);
+
+        $modulo = new Modulo();
+        $modulo->nombre=ucwords($request->nombre);
+        $modulo->horas=$request->horas;
+        $modulo->save();
+
+        return redirect()->route('modulos.index')->with('mensaje','Modulo creado correctamente');
     }
 
     /**
@@ -46,7 +60,7 @@ class ModuloController extends Controller
      */
     public function show(Modulo $modulo)
     {
-        //
+        return view('modulos.detalle',compact('modulo'));
     }
 
     /**
@@ -57,7 +71,7 @@ class ModuloController extends Controller
      */
     public function edit(Modulo $modulo)
     {
-        //
+        return view('modulos.edit',compact('modulo'));
     }
 
     /**
@@ -69,7 +83,15 @@ class ModuloController extends Controller
      */
     public function update(Request $request, Modulo $modulo)
     {
-        //
+        $request->validate([
+            'nombre'=>['required','unique:modulos'],
+            'horas'=>['required','min:0']
+        ]);
+
+        $modulo->nombre=ucwords($request->nombre);
+        $modulo->horas=$request->horas;
+        $modulo->save();
+        return redirect()->route('modulos.index')->with('mensaje','Modulo modificado correctamente');
     }
 
     /**
@@ -80,6 +102,7 @@ class ModuloController extends Controller
      */
     public function destroy(Modulo $modulo)
     {
-        //
+        $modulo->delete();
+        return redirect()->route('modulos.index')->with('mensaje','Modulo borrado correctamente');
     }
 }
